@@ -1,39 +1,39 @@
 # CSV Daten Analyzer - Blazor App
-## 📄 Online-Version starten
+
+## 🚀 Anwendung starten
 
 Klicke hier, um die Anwendung direkt im Browser zu öffnen:
 
 👉 **[CSV-Daten-Analyzer starten](https://etlasso.github.io/CSV-Daten-Analyzer/)**  
 
-
-[translate:Eine einfache Webanwendung zum Hochladen, Anzeigen und Visualisieren von CSV-Dateien als interaktive Diagramme.]
+Eine einfache Webanwendung zum Hochladen, Anzeigen und Visualisieren von CSV-Dateien als interaktive Diagramme.
 
 ## Hauptfunktionen
-- [translate:CSV-Dateien per Upload oder Dateipfad laden]
-- [translate:Automatische Erkennung der Kopfzeile]
-- [translate:Unterstützt Komma- und Semikolon-Trennzeichen]
-- [translate:Mehrere Dateien parallel verwalten]
-- [translate:Visualisierung als Linien-, Balken- oder Flächendiagramme]
-- [translate:Interaktive Charts mit Zoom und Tooltips]
-- [translate:Rohdaten als Tabelle anzeigen (erste 100 Zeilen)]
+- CSV-Dateien per Upload oder Dateipfad laden
+- Automatische Erkennung der Kopfzeile
+- Unterstützt Komma- und Semikolon-Trennzeichen
+- Mehrere Dateien parallel verwalten
+- Visualisierung als Linien-, Balken- oder Flächendiagramme
+- Interaktive Charts mit Zoom und Tooltips
+- Rohdaten als Tabelle anzeigen (erste 100 Zeilen)
 
 ## Benutzung
-1. [translate:Im Menü „CSV Viewer“ eine Datei hochladen oder Pfad eingeben.]
-2. [translate:Datei auswählen und Chart-Typ sowie Achsen konfigurieren.]
-3. [translate:Chart anzeigen lassen und Daten darunter sehen.]
+1. Im Menü „CSV Viewer“ eine Datei hochladen oder Pfad eingeben.
+2. Datei auswählen und Chart-Typ sowie Achsen konfigurieren.
+3. Chart anzeigen lassen und Daten darunter sehen.
 
 ## Technik
-- [translate:.NET 8.0 / Blazor Server]
-- [translate:CsvHelper für CSV-Verarbeitung]
-- [translate:Chart.js für Diagramme]
-- [translate:Bootstrap für UI]
+- .NET 8.0 / Blazor Server
+- CsvHelper für CSV-Verarbeitung
+- Chart.js für Diagramme
+- Bootstrap für UI
 
 ## Voraussetzungen
-- [translate:Visual Studio 2022 oder neuer]
-- [translate:.NET 8 SDK]
+- Visual Studio 2022 oder neuer
+- .NET 8 SDK
 
 ## Problembehandlung
-- [translate:Nur CSV-Dateien mit Komma oder Semikolon als Trenner verwenden]
-- [translate:Datei muss Kopfzeile haben]
-- [translate:Für Charts müssen numerische Spalten ausgewählt werden]
-- [translate:Dateipfade korrekt mit Backslashes angeben]
+- Nur CSV-Dateien mit Komma oder Semikolon als Trenner verwenden
+- Datei muss Kopfzeile haben
+- Für Charts müssen numerische Spalten ausgewählt werden
+- Dateipfade korrekt mit Backslashes angeben

@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>CSV-Daten-Analyzer — Start</title>
+  <style>
+    body{font-family:Inter,system-ui,Segoe UI,Roboto,Arial;margin:0;background:#f4f7fb;color:#0b1220}
+    .wrap{max-width:980px;margin:48px auto;padding:28px;background:#fff;border-radius:12px;box-shadow:0 8px 30px rgba(6,18,33,0.06)}
+    h1{margin:0 0 8px}
+    p.lead{color:#374151}
+    .actions{margin-top:18px;display:flex;gap:12px;flex-wrap:wrap}
+    .btn{background:#06b6d4;color:#022;padding:10px 14px;border-radius:10px;font-weight:700;text-decoration:none}
+    .ghost{background:transparent;border:1px solid #e6eef6;color:#374151}
+    .note{margin-top:16px;color:#6b7280;font-size:14px}
+    iframe.app{width:100%;height:70vh;border:1px solid #e6eef6;border-radius:8px;display:block}
+    .hidden{display:none}
+  </style>
+</head>
+<body>
+  <main class="wrap" id="root">
+    <h1>CSV-Daten-Analyzer</h1>
+    <p class="lead">Wenn die Web-App client-seitig vorliegt, solltest Du sie mit „Programm starten“ öffnen. Falls deine App in <code>dist/</code> oder <code>docs/</code> gebaut wird, sollte der Button automatisch dorthin führen.</p>
+
+    <div class="actions">
+      <a id="open-app" class="btn" href="#" target="_self">Programm starten</a>
+      <a id="open-app-new" class="btn ghost" href="#" target="_blank">In neuem Tab öffnen</a>
+      <a class="ghost" href="README.md">README öffnen</a>
+    </div>
+
+    <div id="frameWrap" class="note hidden">
+      <p style="margin:12px 0 8px">App wird direkt eingebettet (falls verfügbar):</p>
+      <iframe id="appFrame" class="app" title="CSV Daten Analyzer"></iframe>
+    </div>
+
+    <p class="note" id="hint">Hinweis: Wenn der Button oder das Embedded nichts startet, liegt die Startdatei möglicherweise in einem Unterordner (z. B. <code>dist/index.html</code> oder <code>docs/index.html</code>) oder es handelt sich um eine serverseitige App.</p>
+  </main>
+
+  <script>
+    (function(){
+      // Liste der wahrscheinlichsten Startpfade — passe hier bei Bedarf an
+      const candidates = [
+        "./index.html",
+        "./dist/index.html",
+        "./docs/index.html",
+        "./app/index.html",
+        "./public/index.html"
+      ];
+
+      // Diese Funktion prüft, ob eine Datei vorhanden ist, indem sie einen HEAD fetch probiert.
+      // GitHub Pages erlaubt same-origin fetch auf die eigene Site.
+      async function exists(url){
+        try{
+          const r = await fetch(url, {method: 'HEAD'});
+          return r.ok;
+        }catch(e){
+          return false;
+        }
+      }
+
+      async function pick(){
+        for(const c of candidates){
+          if(await exists(c)){
+            return c;
+          }
+        }
+        return null;
+      }
+
+      const openBtn = document.getElementById('open-app');
+      const openBtnNew = document.getElementById('open-app-new');
+      const frameWrap = document.getElementById('frameWrap');
+      const appFrame = document.getElementById('appFrame');
+      const hint = document.getElementById('hint');
+
+      pick().then(path=>{
+        if(path){
+          // setze Buttons und versuche einzubetten
+          openBtn.href = path;
+          openBtnNew.href = path;
+          // Wenn es die Root index.html ist, laden wir sie direkt (nicer UX)
+          if(path === "./index.html"){
+            // redirect auf index.html (same page) — replace, damit History sauber bleibt
+            // falls wir hier sind, die Seite ist ja selbst index.html, also nicht redirecten
+            // stattdessen zeigen wir iframe
+            appFrame.src = "./index.html";
+            frameWrap.classList.remove('hidden');
+            hint.textContent = "Die App wurde gefunden und wird unten eingebettet. Wenn interaktive Skripte nicht funktionieren, öffne sie im neuen Tab.";
+          } else {
+            // embed candidate (works if same-origin)
+            appFrame.src = path;
+            frameWrap.classList.remove('hidden');
+            hint.textContent = "Die App wurde im Unterordner gefunden und wird unten eingebettet. Du kannst sie auch im neuen Tab öffnen.";
+          }
+        } else {
+          // keine Startdatei gefunden
+          openBtn.href = "./"; // bleibt auf Root
+          openBtnNew.href = "./";
+          hint.textContent = "Keine Startdatei (z. B. dist/index.html) gefunden. Falls die App ein Build benötigt, stelle sicher, dass die gebauten Dateien (z. B. `dist/`) in diesem Repo liegen oder ein Workflow die Seite nach /gh-pages deployed.";
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
