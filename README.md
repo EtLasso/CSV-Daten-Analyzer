@@ -1,47 +1,17 @@
-CSV Daten Analyzer - Blazor App
-Eine einfache Webanwendung zum Hochladen, Anzeigen und Visualisieren von CSV-Dateien als interaktive Diagramme.
+## Anwendung starten
 
-Hauptfunktionen
-CSV-Dateien per Upload oder Dateipfad laden
 
-Automatische Erkennung der Kopfzeile
+Klicke auf **Programm starten** in der Datei `index.html` im Repo‑Root oder öffne die Live‑Demo (falls vorhanden).
 
-Unterstützt Komma- und Semikolon-Trennzeichen
 
-Mehrere Dateien parallel verwalten
+Wenn Du lokal arbeiten willst:
 
-Visualisierung als Linien-, Balken- oder Flächendiagramme
 
-Interaktive Charts mit Zoom und Tooltips
-
-Rohdaten als Tabelle anzeigen (erste 100 Zeilen)
-
-Benutzung
-Im Menü „CSV Viewer“ eine Datei hochladen oder Pfad eingeben.
-
-Datei auswählen und Chart-Typ sowie Achsen konfigurieren.
-
-Chart anzeigen lassen und Daten darunter sehen.
-
-Technik
-.NET 8.0 / Blazor Server
-
-CsvHelper für CSV-Verarbeitung
-
-Chart.js für Diagramme
-
-Bootstrap für UI
-
-Voraussetzungen
-Visual Studio 2022 oder neuer
-
-.NET 8 SDK
-
-Problembehandlung
-Nur CSV-Dateien mit Komma oder Semikolon als Trenner verwenden
-
-Datei muss Kopfzeile haben
-
-Für Charts müssen numerische Spalten ausgewählt werden
-
-Dateipfade korrekt mit Backslashes angeben
+```bash
+# Repository klonen
+git clone https://github.com/EtLasso/CSV-Daten-Analyzer.git
+cd CSV-Daten-Analyzer
+# Falls die Anwendung client-seitig ist (statische HTML/JS), öffne index.html im Browser
+# z. B. mit einem einfachen HTTP-Server:
+python -m http.server 8000
+# und dann im Browser öffnen: http://localhost:8000/index.html
