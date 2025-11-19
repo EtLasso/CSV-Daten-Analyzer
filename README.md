@@ -2,6 +2,11 @@
 
 
 Klicke auf **Programm starten** in der Datei `index.html` im Repo‑Root oder öffne die Live‑Demo (falls vorhanden).
+## 📄 Online-Version starten
+
+Klicke hier, um die Anwendung direkt im Browser zu öffnen:
+
+👉 **[CSV-Daten-Analyzer starten](https://etlasso.github.io/CSV-Daten-Analyzer/)**  
 
 
 Wenn Du lokal arbeiten willst:
