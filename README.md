@@ -1,4 +1,10 @@
 # CSV Daten Analyzer - Blazor App
+## 📄 Online-Version starten
+
+Klicke hier, um die Anwendung direkt im Browser zu öffnen:
+
+👉 **[CSV-Daten-Analyzer starten](https://etlasso.github.io/CSV-Daten-Analyzer/)**  
+
 
 [translate:Eine einfache Webanwendung zum Hochladen, Anzeigen und Visualisieren von CSV-Dateien als interaktive Diagramme.]
 
