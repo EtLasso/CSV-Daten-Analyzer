@@ -1,47 +1,33 @@
-CSV Daten Analyzer - Blazor App
-Eine einfache Webanwendung zum Hochladen, Anzeigen und Visualisieren von CSV-Dateien als interaktive Diagramme.
+# CSV Daten Analyzer - Blazor App
 
-Hauptfunktionen
-CSV-Dateien per Upload oder Dateipfad laden
+[translate:Eine einfache Webanwendung zum Hochladen, Anzeigen und Visualisieren von CSV-Dateien als interaktive Diagramme.]
 
-Automatische Erkennung der Kopfzeile
+## Hauptfunktionen
+- [translate:CSV-Dateien per Upload oder Dateipfad laden]
+- [translate:Automatische Erkennung der Kopfzeile]
+- [translate:Unterstützt Komma- und Semikolon-Trennzeichen]
+- [translate:Mehrere Dateien parallel verwalten]
+- [translate:Visualisierung als Linien-, Balken- oder Flächendiagramme]
+- [translate:Interaktive Charts mit Zoom und Tooltips]
+- [translate:Rohdaten als Tabelle anzeigen (erste 100 Zeilen)]
 
-Unterstützt Komma- und Semikolon-Trennzeichen
+## Benutzung
+1. [translate:Im Menü „CSV Viewer“ eine Datei hochladen oder Pfad eingeben.]
+2. [translate:Datei auswählen und Chart-Typ sowie Achsen konfigurieren.]
+3. [translate:Chart anzeigen lassen und Daten darunter sehen.]
 
-Mehrere Dateien parallel verwalten
+## Technik
+- [translate:.NET 8.0 / Blazor Server]
+- [translate:CsvHelper für CSV-Verarbeitung]
+- [translate:Chart.js für Diagramme]
+- [translate:Bootstrap für UI]
 
-Visualisierung als Linien-, Balken- oder Flächendiagramme
+## Voraussetzungen
+- [translate:Visual Studio 2022 oder neuer]
+- [translate:.NET 8 SDK]
 
-Interaktive Charts mit Zoom und Tooltips
-
-Rohdaten als Tabelle anzeigen (erste 100 Zeilen)
-
-Benutzung
-Im Menü „CSV Viewer“ eine Datei hochladen oder Pfad eingeben.
-
-Datei auswählen und Chart-Typ sowie Achsen konfigurieren.
-
-Chart anzeigen lassen und Daten darunter sehen.
-
-Technik
-.NET 8.0 / Blazor Server
-
-CsvHelper für CSV-Verarbeitung
-
-Chart.js für Diagramme
-
-Bootstrap für UI
-
-Voraussetzungen
-Visual Studio 2022 oder neuer
-
-.NET 8 SDK
-
-Problembehandlung
-Nur CSV-Dateien mit Komma oder Semikolon als Trenner verwenden
-
-Datei muss Kopfzeile haben
-
-Für Charts müssen numerische Spalten ausgewählt werden
-
-Dateipfade korrekt mit Backslashes angeben
+## Problembehandlung
+- [translate:Nur CSV-Dateien mit Komma oder Semikolon als Trenner verwenden]
+- [translate:Datei muss Kopfzeile haben]
+- [translate:Für Charts müssen numerische Spalten ausgewählt werden]
+- [translate:Dateipfade korrekt mit Backslashes angeben]
