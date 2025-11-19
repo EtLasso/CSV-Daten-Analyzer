@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>CSV Daten Analyzer</title>
+<style>
+:root{--bg:#0f1724;--card:#0b1220;--accent:#06b6d4;--muted:#9aa4b2;color-scheme:dark}
+html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,'Helvetica Neue',Arial}
+body{display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#071023, #071426);color:#e6eef6}
+.card{width:min(900px,94vw);background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(0,0,0,0.05));border-radius:16px;padding:28px;box-shadow:0 8px 30px rgba(2,6,23,0.7)}
+h1{margin:0 0 6px;font-size:28px}
+p.lead{margin:6px 0 18px;color:var(--muted)}
+.controls{display:flex;gap:12px;flex-wrap:wrap}
+.btn{background:linear-gradient(90deg,var(--accent),#0ea5a6);color:#042027;border:0;padding:10px 14px;border-radius:10px;font-weight:600;cursor:pointer;text-decoration:none}
+.btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted)}
+footer{margin-top:18px;color:var(--muted);font-size:13px}
+pre.small{background:#071726;padding:12px;border-radius:8px;color:#9fb7c3;overflow:auto}
+</style>
+</head>
+<body>
+<main class="card" role="main">
+<h1>CSV Daten Analyzer</h1>
+<p class="lead">Starte die Web‑Anwendung oder öffne die Projektseite. Wenn die App weitere Startdateien braucht, müssen diese Dateien zusammen mit dieser `index.html` deployed werden.</p>
+
+
+<div class="controls">
+<!-- button: öffnet die (vermutete) client-seitige App-Datei im Repository -->
+<a class="btn" id="start-app" href="#">Programm starten</a>
+<!-- falls es eine Live-Demo gibt, einfach URL ersetzen -->
+<a class="btn ghost" id="live-demo" href="#">Live Demo (falls vorhanden)</a>
+<a class="btn ghost" id="readme" href="README.md">README öffnen</a>
+</div>
+
+
+<section style="margin-top:18px">
+<h2 style="font-size:16px;margin:0 0 8px">Hilfe</h2>
+<p class="lead">Falls die Anwendung client‑seitig in einer HTML/JS Datei wie `app.html` oder `dist/index.html` liegt, passe den Link des Buttons <code>Programm starten</code> an die tatsächliche Startdatei an.</p>
+<pre class="small">Beispiel: &lt;a class="btn" href="dist/index.html"&gt;Programm starten&lt;/a&gt;</pre>
+</section>
+
+
+<footer>
+Hinweis: Wenn die Anwendung eine Serverkomponente (.NET, Node, Python, etc.) hat, musst Du sie auf einem Server deployen; diese statische `index.html` hilft nur für reine Client‑seitige Deploys oder als Link‑Landing.
+</footer>
+</main>
+
+
+<script>
+// automatisch versuchen, die wahrscheinlichste Startdatei im Repo zu öffnen (falls vorhanden)
+(function(){
+const likely = ["dist/index.html","app/index.html","public/index.html","index.html","docs/index.html"];
+const startBtn = document.getElementById('start-app');
+// setze href auf das erste existierende Ziel (versucht nicht zu prüfen remote Repo, nur UX placeholder)
+startBtn.href = likely[0];
+document.getElementById('live-demo').href = '#';
+})();
+</script>
+</body>
+</html>
