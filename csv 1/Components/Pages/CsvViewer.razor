@@ -1,0 +1,527 @@
+@page "/csv-viewer"
+@rendermode InteractiveServer
+@using csv_1.Models
+@using csv_1.Services
+@inject CsvService CsvService
+@inject IJSRuntime JS
+
+<PageTitle>CSV Viewer</PageTitle>
+
+<div class="container-fluid">
+    <h1 class="mb-4">
+        <i class="bi bi-file-earmark-spreadsheet"></i> CSV Daten Visualisierung
+    </h1>
+
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">CSV Dateien laden</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Datei-Upload -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Datei hochladen:</label>
+                            <InputFile OnChange="HandleFileSelected" class="form-control" accept=".csv" />
+                            @if (!string.IsNullOrEmpty(uploadMessage))
+                            {
+                                <div class="alert @(uploadSuccess ? "alert-success" : "alert-danger") mt-2">
+                                    @uploadMessage
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Dateipfad eingeben -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Oder Dateipfad eingeben:</label>
+                            <div class="input-group">
+                                <input type="text" @bind="filePath" class="form-control" placeholder="C:\Pfad\zur\datei.csv" />
+                                <button class="btn btn-outline-primary" @onclick="LoadFromPath">
+                                    <i class="bi bi-folder-open"></i> Laden
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Geladene Datasets -->
+    @if (CsvService.GetAllDataSets().Any())
+    {
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">Geladene CSV Dateien (@CsvService.GetAllDataSets().Count)</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Dateiname</th>
+                                        <th>Geladen am</th>
+                                        <th>Zeilen</th>
+                                        <th>Spalten</th>
+                                        <th>Aktionen</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var dataset in CsvService.GetAllDataSets())
+                                    {
+                                        <tr class="@(selectedDataSet == dataset ? "table-active" : "")">
+                                            <td>@dataset.FileName</td>
+                                            <td>@dataset.UploadDate.ToString("dd.MM.yyyy HH:mm")</td>
+                                            <td>@dataset.RowCount</td>
+                                            <td>@dataset.Headers.Count</td>
+                                            <td>
+                                                <button class="btn btn-sm btn-primary" @onclick="() => SelectDataSet(dataset)">
+                                                    <i class="bi bi-bar-chart"></i> Anzeigen
+                                                </button>
+                                                <button class="btn btn-sm btn-danger" @onclick="() => RemoveDataSet(dataset)">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Datenansicht und Chart -->
+        @if (selectedDataSet != null)
+        {
+            <div class="row">
+                <!-- Chart Konfiguration -->
+                <div class="col-md-3">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-info text-white">
+                            <h6 class="mb-0">Chart Einstellungen</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Chart Typ:</label>
+                                <select class="form-select" @bind="chartConfig.ChartType">
+                                    <option value="line">Liniendiagramm</option>
+                                    <option value="bar">Balkendiagramm</option>
+                                    <option value="area">Flächendiagramm</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">X-Achse:</label>
+                                <select class="form-select" @bind="chartConfig.XAxisColumn">
+                                    <option value="">-- Auswählen --</option>
+                                    @foreach (var header in selectedDataSet.Headers)
+                                    {
+                                        <option value="@header">@GetShortHeaderName(header)</option>
+                                    }
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Y-Achsen (Daten):</label>
+                                <div style="max-height: 300px; overflow-y: auto;">
+                                    @foreach (var header in selectedDataSet.Headers)
+                                    {
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" 
+                                                   checked="@chartConfig.YAxisColumns.Contains(header)"
+                                                   @onchange="@(e => ToggleYAxis(header, (bool)e.Value!))" />
+                                            <label class="form-check-label" style="font-size: 0.85rem;">
+                                                @GetShortHeaderName(header)
+                                            </label>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+
+                            <button class="btn btn-success w-100" @onclick="UpdateChart">
+                                <i class="bi bi-arrow-clockwise"></i> Chart aktualisieren
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart Anzeige -->
+                <div class="col-md-9">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-dark text-white">
+                            <h6 class="mb-0">@chartConfig.Title - @selectedDataSet.FileName</h6>
+                        </div>
+                        <div class="card-body">
+                            <div style="height: 400px; position: relative;">
+                                <canvas id="chartCanvas"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Datentabelle -->
+                    <div class="card shadow-sm mt-3">
+                        <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">
+                                <i class="bi bi-table"></i> Rohdaten
+                            </h6>
+                            <span class="badge bg-light text-dark">
+                                Zeige 100 von @selectedDataSet.Rows.Count Zeilen
+                            </span>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="data-table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th class="row-number-header">#</th>
+                                            @foreach (var header in selectedDataSet.Headers)
+                                            {
+                                                <th title="@header">@GetShortHeaderName(header)</th>
+                                            }
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @{ int rowIndex = 1; }
+                                        @foreach (var row in selectedDataSet.Rows.Take(100))
+                                        {
+                                            <tr>
+                                                <td class="row-number">@rowIndex</td>
+                                                @foreach (var header in selectedDataSet.Headers)
+                                                {
+                                                    <td title="@row[header]">@row[header]</td>
+                                                }
+                                            </tr>
+                                            rowIndex++;
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> Noch keine CSV-Dateien geladen. Bitte laden Sie eine CSV-Datei hoch oder geben Sie einen Dateipfad ein.
+        </div>
+    }
+</div>
+
+<style>
+    .data-table-container {
+        max-height: 500px;
+        overflow: auto;
+        background-color: var(--bg-primary);
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: 0.85rem;
+        margin: 0;
+    }
+
+    .data-table thead {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background-color: var(--bg-tertiary);
+    }
+
+    .data-table th {
+        padding: 12px 10px;
+        text-align: left;
+        font-weight: 600;
+        border-bottom: 2px solid var(--accent-primary);
+        border-right: 1px solid var(--border-color);
+        color: var(--accent-primary);
+        white-space: nowrap;
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        background-color: var(--bg-tertiary);
+    }
+
+    .data-table th:last-child {
+        border-right: none;
+    }
+
+    .data-table tbody tr {
+        transition: background-color 0.15s ease;
+    }
+
+    .data-table tbody tr:nth-child(odd) {
+        background-color: var(--bg-secondary);
+    }
+
+    .data-table tbody tr:nth-child(even) {
+        background-color: var(--bg-primary);
+    }
+
+    .data-table tbody tr:hover {
+        background-color: rgba(88, 166, 255, 0.1);
+    }
+
+    .data-table td {
+        padding: 10px 10px;
+        border-bottom: 1px solid var(--border-color);
+        border-right: 1px solid var(--border-color);
+        color: var(--text-primary);
+        white-space: nowrap;
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .data-table td:last-child {
+        border-right: none;
+    }
+
+    .row-number-header,
+    .row-number {
+        background-color: var(--bg-tertiary);
+        font-weight: 600;
+        text-align: center;
+        color: var(--text-secondary);
+        position: sticky;
+        left: 0;
+        min-width: 50px;
+        max-width: 50px;
+        border-right: 2px solid var(--accent-primary) !important;
+    }
+
+    .row-number-header {
+        color: var(--accent-primary);
+    }
+
+    /* Scrollbar Styling */
+    .data-table-container::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+
+    .data-table-container::-webkit-scrollbar-track {
+        background: var(--bg-secondary);
+    }
+
+    .data-table-container::-webkit-scrollbar-thumb {
+        background: var(--accent-primary);
+        border-radius: 5px;
+    }
+
+    .data-table-container::-webkit-scrollbar-thumb:hover {
+        background: var(--accent-secondary);
+    }
+</style>
+
+@code {
+    private string filePath = string.Empty;
+    private string uploadMessage = string.Empty;
+    private bool uploadSuccess = false;
+    private CsvDataSet? selectedDataSet;
+    private ChartConfiguration chartConfig = new ChartConfiguration();
+
+    private string GetShortHeaderName(string header)
+    {
+        // Entferne lange Suffixe wie "Berechnete Auflösungen"
+        header = header.Replace(" Berechnete Auflösungen", "")
+                       .Replace(" Originalauflösungen", "")
+                       .Replace(" Original", "")
+                       .Trim();
+        
+        // Wenn immer noch zu lang, kürze auf 30 Zeichen
+        if (header.Length > 30)
+        {
+            return header.Substring(0, 27) + "...";
+        }
+        
+        return header;
+    }
+
+    private async Task HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            var file = e.File;
+            if (file != null)
+            {
+                using var stream = file.OpenReadStream(maxAllowedSize: 50 * 1024 * 1024); // 50MB max
+                var result = await CsvService.LoadCsvFromStreamAsync(stream, file.Name);
+
+                if (result != null)
+                {
+                    uploadMessage = $"✓ Datei '{file.Name}' erfolgreich geladen! ({result.RowCount} Zeilen)";
+                    uploadSuccess = true;
+                    selectedDataSet = result;
+                    InitializeChartConfig();
+                }
+                else
+                {
+                    uploadMessage = "✗ Fehler beim Laden der Datei.";
+                    uploadSuccess = false;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            uploadMessage = $"✗ Fehler: {ex.Message}";
+            uploadSuccess = false;
+        }
+    }
+
+    private async Task LoadFromPath()
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(filePath))
+            {
+                uploadMessage = "Bitte geben Sie einen Dateipfad ein.";
+                uploadSuccess = false;
+                return;
+            }
+
+            var result = await CsvService.LoadCsvFromPathAsync(filePath);
+            if (result != null)
+            {
+                uploadMessage = $"✓ Datei erfolgreich geladen! ({result.RowCount} Zeilen)";
+                uploadSuccess = true;
+                selectedDataSet = result;
+                InitializeChartConfig();
+                filePath = string.Empty;
+            }
+            else
+            {
+                uploadMessage = "✗ Datei konnte nicht gefunden oder geladen werden.";
+                uploadSuccess = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            uploadMessage = $"✗ Fehler: {ex.Message}";
+            uploadSuccess = false;
+        }
+    }
+
+    private void SelectDataSet(CsvDataSet dataset)
+    {
+        selectedDataSet = dataset;
+        InitializeChartConfig();
+    }
+
+    private void RemoveDataSet(CsvDataSet dataset)
+    {
+        CsvService.RemoveDataSet(dataset);
+        if (selectedDataSet == dataset)
+        {
+            selectedDataSet = null;
+        }
+    }
+
+    private void InitializeChartConfig()
+    {
+        if (selectedDataSet != null && selectedDataSet.Headers.Any())
+        {
+            chartConfig = new ChartConfiguration
+            {
+                Title = $"Visualisierung: {selectedDataSet.FileName}",
+                XAxisColumn = selectedDataSet.Headers.FirstOrDefault() ?? "",
+                YAxisColumns = new List<string>()
+            };
+
+            // Automatisch numerische Spalten für Y-Achse auswählen
+            foreach (var header in selectedDataSet.Headers.Skip(1).Take(3))
+            {
+                if (IsNumericColumn(header))
+                {
+                    chartConfig.YAxisColumns.Add(header);
+                }
+            }
+
+            StateHasChanged();
+            _ = UpdateChart();
+        }
+    }
+
+    private bool IsNumericColumn(string header)
+    {
+        if (selectedDataSet == null) return false;
+        var sampleValues = selectedDataSet.Rows.Take(10).Select(r => r[header]).ToList();
+        return sampleValues.Any(v => double.TryParse(v, out _));
+    }
+
+    private void ToggleYAxis(string header, bool isChecked)
+    {
+        if (isChecked && !chartConfig.YAxisColumns.Contains(header))
+        {
+            chartConfig.YAxisColumns.Add(header);
+        }
+        else if (!isChecked && chartConfig.YAxisColumns.Contains(header))
+        {
+            chartConfig.YAxisColumns.Remove(header);
+        }
+    }
+
+    private async Task UpdateChart()
+    {
+        if (selectedDataSet == null || string.IsNullOrEmpty(chartConfig.XAxisColumn) || !chartConfig.YAxisColumns.Any())
+        {
+            return;
+        }
+
+        var chartData = PrepareChartData();
+        await JS.InvokeVoidAsync("renderChart", chartData, chartConfig.ChartType);
+    }
+
+    private object PrepareChartData()
+    {
+        if (selectedDataSet == null) return new { };
+
+        var labels = selectedDataSet.Rows
+            .Select(r => r.ContainsKey(chartConfig.XAxisColumn) ? r[chartConfig.XAxisColumn] : "")
+            .Take(100)
+            .ToList();
+
+        var datasets = new List<object>();
+        var colors = new[] { "#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF", "#FF9F40" };
+        int colorIndex = 0;
+
+        foreach (var yColumn in chartConfig.YAxisColumns)
+        {
+            var data = selectedDataSet.Rows
+                .Take(100)
+                .Select(r =>
+                {
+                    if (r.ContainsKey(yColumn) && double.TryParse(r[yColumn], out var value))
+                        return value;
+                    return 0.0;
+                })
+                .ToList();
+
+            datasets.Add(new
+            {
+                label = GetShortHeaderName(yColumn),
+                data = data,
+                borderColor = colors[colorIndex % colors.Length],
+                backgroundColor = colors[colorIndex % colors.Length] + "80",
+                fill = chartConfig.ChartType == "area"
+            });
+
+            colorIndex++;
+        }
+
+        return new
+        {
+            labels = labels,
+            datasets = datasets
+        };
+    }
+}

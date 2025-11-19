@@ -1,0 +1,76 @@
+@rendermode InteractiveServer
+
+<footer class="app-footer">
+    <div class="footer-content">
+        <span>© 2025 CSV Analyzer</span>
+        <span class="footer-separator">•</span>
+        <a href="javascript:void(0);" @onclick="ShowImpressum">Impressum</a>
+    </div>
+</footer>
+
+<!-- Impressum Modal -->
+@if (showImpressumModal)
+{
+    <div class="modal-backdrop" @onclick="HideImpressum"></div>
+    <div class="modal-dialog" @onclick:stopPropagation="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-info-circle"></i> Impressum
+                </h5>
+                <button type="button" class="btn-close" @onclick="HideImpressum">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <h6>Angaben gemäß § 5 TMG</h6>
+                <p class="mb-3">
+                    <strong>Inhaber:</strong> Ricodsc<br />
+                    <strong>Anwendung:</strong> CSV Analyzer<br />
+                    <strong>Version:</strong> 1.0
+                </p>
+
+                <h6>Kontakt</h6>
+                <p class="mb-3">
+                    Bei Fragen oder Anregungen können Sie sich gerne an den Inhaber wenden.
+                </p>
+
+                <h6>Haftungsausschluss</h6>
+                <p class="mb-2"><strong>Haftung für Inhalte</strong></p>
+                <p class="mb-3">
+                    Die Inhalte dieser Anwendung wurden mit größter Sorgfalt erstellt. 
+                    Für die Richtigkeit, Vollständigkeit und Aktualität der Inhalte können wir jedoch keine Gewähr übernehmen.
+                </p>
+
+                <p class="mb-2"><strong>Datenschutz</strong></p>
+                <p class="mb-0">
+                    Diese Anwendung verarbeitet Ihre CSV-Daten ausschließlich lokal. 
+                    Es werden keine Daten an externe Server übertragen oder gespeichert.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" @onclick="HideImpressum">
+                    <i class="bi bi-check-lg"></i> Schließen
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private bool showImpressumModal = false;
+
+    private void ShowImpressum()
+    {
+        Console.WriteLine("Impressum anzeigen geklickt!");
+        showImpressumModal = true;
+        StateHasChanged();
+    }
+
+    private void HideImpressum()
+    {
+        Console.WriteLine("Impressum schließen geklickt!");
+        showImpressumModal = false;
+        StateHasChanged();
+    }
+}

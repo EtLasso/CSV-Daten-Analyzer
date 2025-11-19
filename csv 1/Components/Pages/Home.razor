@@ -1,0 +1,85 @@
+@page "/"
+
+<PageTitle>Home</PageTitle>
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12 text-center">
+            <h1 class="display-3 mb-4">
+                <i class="bi bi-file-earmark-spreadsheet text-primary"></i>
+                CSV Daten Analyzer
+            </h1>
+            <p class="lead text-muted mb-5">
+                Willkommen beim CSV Visualisierungs-Tool! Laden Sie Ihre CSV-Dateien hoch und visualisieren Sie die Daten in interaktiven Charts.
+            </p>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <a href="/csv-viewer" class="text-decoration-none">
+                <div class="card h-100 shadow-sm feature-card">
+                    <div class="card-body text-center">
+                        <i class="bi bi-upload display-4 text-primary mb-3"></i>
+                        <h5 class="card-title">CSV Hochladen</h5>
+                        <p class="card-text">
+                            Laden Sie CSV-Dateien direkt hoch oder geben Sie einen Dateipfad ein.
+                        </p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-4">
+            <a href="/csv-viewer" class="text-decoration-none">
+                <div class="card h-100 shadow-sm feature-card">
+                    <div class="card-body text-center">
+                        <i class="bi bi-bar-chart-fill display-4 text-success mb-3"></i>
+                        <h5 class="card-title">Daten Visualisieren</h5>
+                        <p class="card-text">
+                            Erstellen Sie Linien-, Balken- oder Flächendiagramme aus Ihren Daten.
+                        </p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-4">
+            <a href="/csv-viewer" class="text-decoration-none">
+                <div class="card h-100 shadow-sm feature-card">
+                    <div class="card-body text-center">
+                        <i class="bi bi-table display-4 text-info mb-3"></i>
+                        <h5 class="card-title">Daten Analysieren</h5>
+                        <p class="card-text">
+                            Sehen Sie sich Ihre Rohdaten in übersichtlichen Tabellen an.
+                        </p>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12 text-center">
+            <a href="/csv-viewer" class="btn btn-primary btn-lg">
+                <i class="bi bi-arrow-right-circle"></i> Zum CSV Viewer
+            </a>
+        </div>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-md-12">
+            <div class="alert alert-info">
+                <h5><i class="bi bi-info-circle"></i> Funktionen:</h5>
+                <ul class="mb-0">
+                    <li>Unterstützt sowohl Komma (,) als auch Semikolon (;) als Trennzeichen</li>
+                    <li>Flexible Header-Erkennung</li>
+                    <li>Mehrere CSV-Dateien gleichzeitig laden und verwalten</li>
+                    <li>Interaktive Chart-Konfiguration mit X- und Y-Achsen-Auswahl</li>
+                    <li>Verschiedene Chart-Typen: Linien-, Balken- und Flächendiagramme</li>
+                    <li>Tabellarische Ansicht der Rohdaten</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
