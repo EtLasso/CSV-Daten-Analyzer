@@ -1,105 +1,877 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>CSV-Daten-Analyzer — Start</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CSV-Daten-Analyzer</title>
   <style>
-    body{font-family:Inter,system-ui,Segoe UI,Roboto,Arial;margin:0;background:#f4f7fb;color:#0b1220}
-    .wrap{max-width:980px;margin:48px auto;padding:28px;background:#fff;border-radius:12px;box-shadow:0 8px 30px rgba(6,18,33,0.06)}
-    h1{margin:0 0 8px}
-    p.lead{color:#374151}
-    .actions{margin-top:18px;display:flex;gap:12px;flex-wrap:wrap}
-    .btn{background:#06b6d4;color:#022;padding:10px 14px;border-radius:10px;font-weight:700;text-decoration:none}
-    .ghost{background:transparent;border:1px solid #e6eef6;color:#374151}
-    .note{margin-top:16px;color:#6b7280;font-size:14px}
-    iframe.app{width:100%;height:70vh;border:1px solid #e6eef6;border-radius:8px;display:block}
-    .hidden{display:none}
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary:  #2563eb;
+      --accent:   #0ea5e9;
+      --dark:     #1e293b;
+      --mid:      #475569;
+      --light:    #f1f5f9;
+      --white:    #ffffff;
+      --green:    #22c55e;
+      --red:      #ef4444;
+      --amber:    #f59e0b;
+      --radius:   10px;
+      --shadow:   0 4px 20px rgba(0,0,0,0.08);
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--light);
+      color: var(--dark);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--dark);
+      color: var(--white);
+      padding: 0 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 58px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      flex-shrink: 0;
+    }
+    .header-left { display: flex; align-items: center; gap: 14px; }
+    .header-logo {
+      width: 34px; height: 34px; border-radius: 8px;
+      background: var(--primary);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+    }
+    header h1 { font-size: 1.15rem; font-weight: 700; }
+    header p.tagline { font-size: 0.78rem; color: #94a3b8; margin-top: 1px; }
+    .header-right { display: flex; align-items: center; gap: 10px; }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 14px; border-radius: var(--radius);
+      font-size: 0.84rem; font-weight: 600; cursor: pointer;
+      border: none; transition: background 0.15s;
+    }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: #1d4ed8; }
+    .btn-accent  { background: var(--accent); color: #fff; }
+    .btn-accent:hover { background: #0284c7; }
+    .btn-ghost {
+      background: rgba(255,255,255,0.08); color: #cbd5e1;
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+    .btn-ghost:hover { background: rgba(255,255,255,0.15); color: #fff; }
+    .btn-outline {
+      background: var(--white); color: var(--dark);
+      border: 1px solid #e2e8f0;
+    }
+    .btn-outline:hover { background: var(--light); }
+    .btn-sm { padding: 5px 10px; font-size: 0.78rem; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── Upload Zone ── */
+    #upload-zone {
+      flex: 1;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 18px; padding: 40px 20px;
+    }
+    .drop-card {
+      background: var(--white);
+      border: 2.5px dashed #cbd5e1;
+      border-radius: 18px;
+      padding: 56px 80px;
+      text-align: center;
+      max-width: 560px; width: 100%;
+      transition: border-color 0.2s, background 0.2s;
+      cursor: pointer;
+    }
+    .drop-card.dragover { border-color: var(--primary); background: #eff6ff; }
+    .drop-icon { font-size: 3rem; margin-bottom: 14px; }
+    .drop-card h2 { font-size: 1.35rem; color: var(--dark); margin-bottom: 8px; }
+    .drop-card p { color: var(--mid); font-size: 0.9rem; margin-bottom: 20px; }
+    .drop-hint { font-size: 0.78rem; color: #94a3b8; margin-top: 12px; }
+    #file-input { display: none; }
+    .demo-btn {
+      background: none; border: none; color: var(--accent);
+      font-size: 0.88rem; cursor: pointer; text-decoration: underline;
+    }
+    .demo-btn:hover { color: var(--primary); }
+
+    /* ── Main App Layout ── */
+    #app { display: none; flex-direction: column; flex: 1; min-height: 0; }
+
+    /* ── Toolbar ── */
+    .toolbar {
+      background: var(--white);
+      border-bottom: 1px solid #e2e8f0;
+      padding: 10px 20px;
+      display: flex; align-items: center; gap: 10px;
+      flex-wrap: wrap;
+    }
+    .toolbar-sep { width: 1px; height: 24px; background: #e2e8f0; margin: 0 4px; }
+    .search-wrap {
+      display: flex; align-items: center;
+      background: var(--light); border: 1px solid #e2e8f0;
+      border-radius: var(--radius); padding: 5px 10px; gap: 6px;
+      flex: 1; min-width: 180px; max-width: 320px;
+    }
+    .search-wrap input {
+      border: none; background: none; outline: none;
+      font-size: 0.85rem; color: var(--dark); width: 100%;
+    }
+    .filename-chip {
+      background: #eff6ff; color: var(--primary);
+      font-size: 0.78rem; font-weight: 600;
+      padding: 4px 10px; border-radius: 99px;
+      border: 1px solid #bfdbfe; white-space: nowrap;
+    }
+
+    /* ── Stats Bar ── */
+    .stats-bar {
+      background: var(--white);
+      border-bottom: 1px solid #e2e8f0;
+      padding: 8px 20px;
+      display: flex; gap: 20px; flex-wrap: wrap;
+    }
+    .stat-pill {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 0.8rem; color: var(--mid);
+    }
+    .stat-pill strong { color: var(--dark); font-size: 0.88rem; }
+    .stat-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+    /* ── Tabs ── */
+    .tabs {
+      background: var(--white);
+      border-bottom: 1px solid #e2e8f0;
+      padding: 0 20px;
+      display: flex; gap: 4px;
+    }
+    .tab-btn {
+      padding: 10px 16px; font-size: 0.85rem; font-weight: 600;
+      color: var(--mid); background: none; border: none;
+      border-bottom: 2.5px solid transparent;
+      cursor: pointer; transition: color 0.15s;
+      white-space: nowrap;
+    }
+    .tab-btn:hover { color: var(--dark); }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+    /* ── Tab Panels ── */
+    .tab-panel { display: none; flex: 1; overflow: auto; }
+    .tab-panel.active { display: flex; flex-direction: column; }
+
+    /* ── Table Panel ── */
+    #panel-table { background: var(--white); }
+    .table-wrap { overflow: auto; flex: 1; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+    thead tr { background: var(--dark); position: sticky; top: 0; z-index: 2; }
+    thead th {
+      color: var(--white); padding: 11px 14px;
+      text-align: left; font-weight: 600;
+      white-space: nowrap; cursor: pointer; user-select: none;
+    }
+    thead th:hover { background: #334155; }
+    thead th.sort-asc::after  { content: ' ▲'; font-size: 0.7rem; opacity: 0.8; }
+    thead th.sort-desc::after { content: ' ▼'; font-size: 0.7rem; opacity: 0.8; }
+    tbody tr { border-bottom: 1px solid #f1f5f9; }
+    tbody tr:hover { background: #f8fafc; }
+    tbody td { padding: 9px 14px; color: var(--mid); max-width: 260px; }
+    tbody td .cell-inner { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
+    .number-cell { color: var(--dark); font-variant-numeric: tabular-nums; text-align: right; }
+    .empty-cell { color: #cbd5e1; font-style: italic; }
+    .row-num-col { color: #94a3b8; font-size: 0.75rem; text-align: right; width: 40px; }
+
+    .pagination {
+      padding: 10px 20px; background: var(--white);
+      border-top: 1px solid #e2e8f0;
+      display: flex; align-items: center; gap: 8px;
+      font-size: 0.82rem; color: var(--mid);
+    }
+    .pagination .spacer { flex: 1; }
+    select.rows-per-page {
+      border: 1px solid #e2e8f0; border-radius: 6px;
+      padding: 3px 6px; font-size: 0.82rem;
+      background: var(--white); color: var(--dark); cursor: pointer;
+    }
+
+    /* ── Stats Panel ── */
+    #panel-stats { padding: 24px; gap: 24px; background: var(--light); }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+    }
+    .stat-card {
+      background: var(--white); border-radius: var(--radius);
+      padding: 18px 20px; box-shadow: var(--shadow);
+    }
+    .stat-card .label { font-size: 0.75rem; color: var(--mid); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+    .stat-card .value { font-size: 1.8rem; font-weight: 700; color: var(--dark); }
+    .stat-card .sub   { font-size: 0.78rem; color: var(--mid); margin-top: 3px; }
+    .col-stats-section h3 {
+      font-size: 0.9rem; font-weight: 700; color: var(--dark);
+      margin-bottom: 12px; padding-bottom: 6px;
+      border-bottom: 2px solid var(--primary);
+      text-transform: uppercase; letter-spacing: 0.06em;
+    }
+    .col-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 14px;
+    }
+    .col-card {
+      background: var(--white); border-radius: var(--radius);
+      padding: 14px 16px; box-shadow: var(--shadow);
+      border-left: 4px solid var(--accent);
+    }
+    .col-card.is-num { border-left-color: var(--green); }
+    .col-card h4 { font-size: 0.88rem; font-weight: 700; color: var(--dark); margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .col-meta { display: flex; flex-wrap: wrap; gap: 8px; }
+    .col-meta-item { font-size: 0.78rem; color: var(--mid); }
+    .col-meta-item strong { color: var(--dark); }
+    .mini-bar-wrap { margin-top: 8px; }
+    .mini-bar-label { display: flex; justify-content: space-between; font-size: 0.74rem; color: var(--mid); margin-bottom: 3px; }
+    .mini-bar { background: #e2e8f0; border-radius: 99px; height: 5px; overflow: hidden; }
+    .mini-bar-fill { height: 100%; border-radius: 99px; background: var(--green); }
+    .tag { display: inline-flex; align-items: center; font-size: 0.72rem; font-weight: 600; padding: 1px 7px; border-radius: 99px; margin-left: 4px; }
+    .tag-num { background: #dcfce7; color: #166534; }
+    .tag-txt { background: #e0f2fe; color: #075985; }
+
+    /* ── Chart Panel ── */
+    #panel-chart { padding: 24px; gap: 20px; background: var(--light); }
+    .chart-controls {
+      background: var(--white); border-radius: var(--radius);
+      padding: 18px 20px; box-shadow: var(--shadow);
+      display: flex; align-items: flex-end; gap: 16px; flex-wrap: wrap;
+    }
+    .ctrl-group { display: flex; flex-direction: column; gap: 5px; }
+    .ctrl-group label { font-size: 0.78rem; font-weight: 600; color: var(--mid); text-transform: uppercase; letter-spacing: 0.06em; }
+    .ctrl-group select, .ctrl-group input {
+      border: 1px solid #e2e8f0; border-radius: 8px;
+      padding: 7px 10px; font-size: 0.85rem;
+      background: var(--white); color: var(--dark); min-width: 140px;
+    }
+    .chart-area {
+      background: var(--white); border-radius: var(--radius);
+      padding: 24px; box-shadow: var(--shadow);
+      flex: 1; min-height: 340px; display: flex; flex-direction: column;
+    }
+    .chart-title { font-size: 0.9rem; font-weight: 700; color: var(--dark); margin-bottom: 16px; }
+    #chart-canvas { width: 100%; display: block; }
+
+    /* ── Export Panel ── */
+    #panel-export { padding: 24px; gap: 20px; background: var(--light); }
+    .export-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px;
+    }
+    .export-card {
+      background: var(--white); border-radius: var(--radius);
+      padding: 24px 20px; box-shadow: var(--shadow);
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .export-card .icon { font-size: 2rem; }
+    .export-card h3 { font-size: 1rem; font-weight: 700; color: var(--dark); }
+    .export-card p { font-size: 0.83rem; color: var(--mid); line-height: 1.5; flex: 1; }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; bottom: 24px; right: 24px;
+      background: var(--dark); color: #fff;
+      padding: 12px 18px; border-radius: var(--radius);
+      font-size: 0.85rem; font-weight: 500;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+      z-index: 9999; opacity: 0; transition: opacity 0.3s; pointer-events: none;
+    }
+    .toast.show { opacity: 1; }
+
+    @media (max-width: 600px) {
+      .drop-card { padding: 36px 20px; }
+      header h1 { font-size: 1rem; }
+    }
   </style>
 </head>
 <body>
-  <main class="wrap" id="root">
-    <h1>CSV-Daten-Analyzer</h1>
-    <p class="lead">Wenn die Web-App client-seitig vorliegt, solltest Du sie mit „Programm starten“ öffnen. Falls deine App in <code>dist/</code> oder <code>docs/</code> gebaut wird, sollte der Button automatisch dorthin führen.</p>
 
-    <div class="actions">
-      <a id="open-app" class="btn" href="#" target="_self">Programm starten</a>
-      <a id="open-app-new" class="btn ghost" href="#" target="_blank">In neuem Tab öffnen</a>
-      <a class="ghost" href="README.md">README öffnen</a>
+<header>
+  <div class="header-left">
+    <div class="header-logo">📈</div>
+    <div>
+      <h1>CSV-Daten-Analyzer</h1>
+      <p class="tagline">Einlesen · Filtern · Auswerten · Exportieren</p>
     </div>
+  </div>
+  <div class="header-right">
+    <button class="btn btn-ghost btn-sm" id="btn-new-file" style="display:none">
+      📂 Neue Datei
+    </button>
+  </div>
+</header>
 
-    <div id="frameWrap" class="note hidden">
-      <p style="margin:12px 0 8px">App wird direkt eingebettet (falls verfügbar):</p>
-      <iframe id="appFrame" class="app" title="CSV Daten Analyzer"></iframe>
+<!-- Upload Zone -->
+<div id="upload-zone">
+  <div class="drop-card" id="drop-zone" onclick="document.getElementById('file-input').click()">
+    <div class="drop-icon">📂</div>
+    <h2>CSV-Datei laden</h2>
+    <p>Ziehe eine <strong>.csv</strong>-Datei hierher<br>oder klicke um sie auszuwählen.</p>
+    <button class="btn btn-primary" onclick="event.stopPropagation();document.getElementById('file-input').click()">
+      Datei auswählen
+    </button>
+    <p class="drop-hint">Noch keine Datei? Lade Beispieldaten:</p>
+    <button class="demo-btn" id="btn-demo" onclick="event.stopPropagation()">Demo-Daten laden</button>
+    <input type="file" id="file-input" accept=".csv,.txt" />
+  </div>
+</div>
+
+<!-- Main App -->
+<div id="app">
+
+  <div class="toolbar">
+    <div class="search-wrap">
+      <span>🔍</span>
+      <input type="text" id="search-input" placeholder="In allen Spalten suchen …" />
     </div>
+    <div class="toolbar-sep"></div>
+    <span class="filename-chip" id="filename-chip">—</span>
+    <div class="toolbar-sep"></div>
+    <button class="btn btn-outline btn-sm" id="btn-clear-filter">✕ Filter löschen</button>
+  </div>
 
-    <p class="note" id="hint">Hinweis: Wenn der Button oder das Embedded nichts startet, liegt die Startdatei möglicherweise in einem Unterordner (z. B. <code>dist/index.html</code> oder <code>docs/index.html</code>) oder es handelt sich um eine serverseitige App.</p>
-  </main>
+  <div class="stats-bar">
+    <div class="stat-pill"><div class="stat-dot" style="background:var(--primary)"></div><strong id="stat-rows">0</strong>&nbsp;Zeilen gesamt</div>
+    <div class="stat-pill"><div class="stat-dot" style="background:var(--accent)"></div><strong id="stat-cols">0</strong>&nbsp;Spalten</div>
+    <div class="stat-pill"><div class="stat-dot" style="background:var(--green)"></div><strong id="stat-shown">0</strong>&nbsp;angezeigt</div>
+    <div class="stat-pill"><div class="stat-dot" style="background:var(--amber)"></div><strong id="stat-empty">0</strong>&nbsp;leere Zellen</div>
+    <div class="stat-pill"><div class="stat-dot" style="background:var(--red)"></div><strong id="stat-num-cols">0</strong>&nbsp;Zahlenspalten</div>
+  </div>
 
-  <script>
-    (function(){
-      // Liste der wahrscheinlichsten Startpfade — passe hier bei Bedarf an
-      const candidates = [
-        "./index.html",
-        "./dist/index.html",
-        "./docs/index.html",
-        "./app/index.html",
-        "./public/index.html"
-      ];
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="table">📋 Tabelle</button>
+    <button class="tab-btn" data-tab="stats">📊 Statistiken</button>
+    <button class="tab-btn" data-tab="chart">📈 Diagramm</button>
+    <button class="tab-btn" data-tab="export">💾 Export</button>
+  </div>
 
-      // Diese Funktion prüft, ob eine Datei vorhanden ist, indem sie einen HEAD fetch probiert.
-      // GitHub Pages erlaubt same-origin fetch auf die eigene Site.
-      async function exists(url){
-        try{
-          const r = await fetch(url, {method: 'HEAD'});
-          return r.ok;
-        }catch(e){
-          return false;
-        }
-      }
+  <!-- Tabelle -->
+  <div class="tab-panel active" id="panel-table">
+    <div class="table-wrap">
+      <table id="data-table">
+        <thead id="table-head"></thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+    <div class="pagination">
+      <label>Zeilen:&nbsp;<select class="rows-per-page" id="rows-per-page">
+        <option value="25">25</option>
+        <option value="50" selected>50</option>
+        <option value="100">100</option>
+        <option value="0">Alle</option>
+      </select></label>
+      <div class="spacer"></div>
+      <button class="btn btn-outline btn-sm" id="btn-prev">◀</button>
+      <span id="page-info" style="font-size:0.82rem;color:var(--mid)">–</span>
+      <button class="btn btn-outline btn-sm" id="btn-next">▶</button>
+    </div>
+  </div>
 
-      async function pick(){
-        for(const c of candidates){
-          if(await exists(c)){
-            return c;
-          }
-        }
-        return null;
-      }
+  <!-- Statistiken -->
+  <div class="tab-panel" id="panel-stats">
+    <div class="stats-grid" id="overview-cards"></div>
+    <div class="col-stats-section">
+      <h3>Spalten-Analyse</h3>
+      <div class="col-stats-grid" id="col-cards"></div>
+    </div>
+  </div>
 
-      const openBtn = document.getElementById('open-app');
-      const openBtnNew = document.getElementById('open-app-new');
-      const frameWrap = document.getElementById('frameWrap');
-      const appFrame = document.getElementById('appFrame');
-      const hint = document.getElementById('hint');
+  <!-- Diagramm -->
+  <div class="tab-panel" id="panel-chart">
+    <div class="chart-controls">
+      <div class="ctrl-group">
+        <label>Diagramm-Typ</label>
+        <select id="chart-type">
+          <option value="bar">Balken</option>
+          <option value="line">Linie</option>
+          <option value="pie">Torte</option>
+        </select>
+      </div>
+      <div class="ctrl-group">
+        <label>X-Achse / Kategorie</label>
+        <select id="chart-x"></select>
+      </div>
+      <div class="ctrl-group">
+        <label>Y-Achse / Wert</label>
+        <select id="chart-y"></select>
+      </div>
+      <div class="ctrl-group">
+        <label>Max. Einträge</label>
+        <input type="number" id="chart-limit" value="15" min="2" max="100" style="width:80px" />
+      </div>
+      <button class="btn btn-primary" id="btn-draw">▶ Zeichnen</button>
+    </div>
+    <div class="chart-area">
+      <div class="chart-title" id="chart-title">Wähle Achsen und klicke „Zeichnen"</div>
+      <canvas id="chart-canvas"></canvas>
+    </div>
+  </div>
 
-      pick().then(path=>{
-        if(path){
-          // setze Buttons und versuche einzubetten
-          openBtn.href = path;
-          openBtnNew.href = path;
-          // Wenn es die Root index.html ist, laden wir sie direkt (nicer UX)
-          if(path === "./index.html"){
-            // redirect auf index.html (same page) — replace, damit History sauber bleibt
-            // falls wir hier sind, die Seite ist ja selbst index.html, also nicht redirecten
-            // stattdessen zeigen wir iframe
-            appFrame.src = "./index.html";
-            frameWrap.classList.remove('hidden');
-            hint.textContent = "Die App wurde gefunden und wird unten eingebettet. Wenn interaktive Skripte nicht funktionieren, öffne sie im neuen Tab.";
-          } else {
-            // embed candidate (works if same-origin)
-            appFrame.src = path;
-            frameWrap.classList.remove('hidden');
-            hint.textContent = "Die App wurde im Unterordner gefunden und wird unten eingebettet. Du kannst sie auch im neuen Tab öffnen.";
-          }
-        } else {
-          // keine Startdatei gefunden
-          openBtn.href = "./"; // bleibt auf Root
-          openBtnNew.href = "./";
-          hint.textContent = "Keine Startdatei (z. B. dist/index.html) gefunden. Falls die App ein Build benötigt, stelle sicher, dass die gebauten Dateien (z. B. `dist/`) in diesem Repo liegen oder ein Workflow die Seite nach /gh-pages deployed.";
-        }
-      });
-    })();
-  </script>
+  <!-- Export -->
+  <div class="tab-panel" id="panel-export">
+    <div class="export-cards">
+      <div class="export-card">
+        <span class="icon">📄</span>
+        <h3>CSV exportieren</h3>
+        <p>Aktuelle gefilterte Ansicht als CSV-Datei herunterladen.</p>
+        <button class="btn btn-primary" id="btn-export-csv">⬇ CSV laden</button>
+      </div>
+      <div class="export-card">
+        <span class="icon">📋</span>
+        <h3>In Zwischenablage</h3>
+        <p>Tabelle als tab-getrennten Text kopieren – direkt in Excel einfügbar.</p>
+        <button class="btn btn-accent" id="btn-copy-tsv">📋 Kopieren</button>
+      </div>
+      <div class="export-card">
+        <span class="icon">🔢</span>
+        <h3>JSON exportieren</h3>
+        <p>Gefilterte Daten als strukturiertes JSON-Array herunterladen.</p>
+        <button class="btn btn-outline" id="btn-export-json">⬇ JSON laden</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═══════════════════════════════════
+   STATE
+═══════════════════════════════════ */
+let S = {
+  headers: [], rows: [], filtered: [],
+  sortCol: -1, sortDir: 1,
+  page: 0, pageSize: 50,
+  search: '', filename: '',
+  _numCols: [],
+};
+
+/* ═══════════════════════════════════
+   DEMO DATA
+═══════════════════════════════════ */
+const DEMO = `Name,Abteilung,Gehalt,Eintrittsjahr,Stadt,Bewertung
+Anna Schmidt,Entwicklung,58000,2019,Berlin,4.5
+Ben Müller,Marketing,47000,2021,Hamburg,3.8
+Clara Weber,Entwicklung,63000,2018,München,4.9
+David Koch,HR,42000,2022,Berlin,4.1
+Emma Bauer,Vertrieb,51000,2020,Frankfurt,3.6
+Felix Braun,Entwicklung,71000,2017,Berlin,4.7
+Gina Hoffmann,Marketing,45000,2021,Hamburg,4.0
+Hans Klein,Vertrieb,55000,2019,München,3.9
+Iris Lang,Entwicklung,67000,2016,Frankfurt,4.8
+Jonas Schulz,HR,41000,2023,Berlin,3.5
+Klara Fischer,Vertrieb,49000,2020,Hamburg,4.2
+Lars Neumann,Entwicklung,75000,2015,München,5.0
+Maria Richter,Marketing,44000,2022,Berlin,3.7
+Nico Hartmann,HR,43000,2021,Frankfurt,4.3
+Olivia Kramer,Entwicklung,69000,2018,Hamburg,4.6
+Peter Schäfer,Vertrieb,52000,2020,München,3.8
+Quinn Wagner,Marketing,46000,2021,Berlin,4.1
+Rosa Zimmermann,Entwicklung,62000,2019,Frankfurt,4.4
+Stefan Wolf,Vertrieb,58000,2017,Hamburg,4.0
+Tina Schröder,HR,40000,2023,München,3.6
+Uwe Meyer,Entwicklung,80000,2014,Berlin,4.9
+Vera Lehmann,Marketing,48000,2020,Hamburg,4.2
+Willi Köhler,Vertrieb,53000,2019,Frankfurt,3.9
+Xena Haas,Entwicklung,64000,2018,München,4.5
+Yann Walter,HR,44000,2022,Berlin,4.0
+Zoe Kramer,Marketing,50000,2019,Hamburg,4.3`;
+
+/* ═══════════════════════════════════
+   CSV PARSER
+═══════════════════════════════════ */
+function parseCSV(text) {
+  const first = text.split('\n')[0];
+  const delim = first.includes(';') ? ';' : first.includes('\t') ? '\t' : ',';
+  const lines = text.replace(/\r/g, '').split('\n').filter(l => l.trim());
+  const headers = splitLine(lines[0], delim);
+  const rows = [];
+  for (let i = 1; i < lines.length; i++) {
+    const cells = splitLine(lines[i], delim);
+    if (cells.some(c => c !== '')) rows.push(cells);
+  }
+  return { headers, rows };
+}
+
+function splitLine(line, delim) {
+  const result = []; let cur = '', inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') { inQ = !inQ; continue; }
+    if (ch === delim && !inQ) { result.push(cur.trim()); cur = ''; continue; }
+    cur += ch;
+  }
+  result.push(cur.trim());
+  return result;
+}
+
+/* ═══════════════════════════════════
+   LOAD
+═══════════════════════════════════ */
+function loadData(text, filename) {
+  const { headers, rows } = parseCSV(text);
+  Object.assign(S, { headers, rows, filtered: [...rows], sortCol: -1, sortDir: 1, page: 0, search: '', filename });
+  document.getElementById('search-input').value = '';
+  document.getElementById('filename-chip').textContent = filename;
+  document.getElementById('btn-new-file').style.display = '';
+  document.getElementById('upload-zone').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  S._numCols = headers.map((_, ci) =>
+    rows.slice(0, 30).filter(r => r[ci] !== '').every(r => isNum(r[ci] ?? ''))
+  );
+  updateStats(); buildTable(); buildStatsPanel(); buildChartControls();
+  showToast(`✓ ${rows.length} Zeilen · ${headers.length} Spalten geladen`);
+}
+
+/* ═══════════════════════════════════
+   HELPERS
+═══════════════════════════════════ */
+const isNum = v => v !== '' && !isNaN(Number(v.replace(',', '.')));
+const numVal = v => Number(v.replace(',', '.'));
+const fmt = n => Number.isInteger(n) ? n.toLocaleString('de') : parseFloat(n.toFixed(2)).toLocaleString('de');
+
+function updateStats() {
+  let empty = 0;
+  S.rows.forEach(r => r.forEach(c => { if (c === '') empty++; }));
+  const numC = S._numCols.filter(Boolean).length;
+  document.getElementById('stat-rows').textContent   = S.rows.length;
+  document.getElementById('stat-cols').textContent   = S.headers.length;
+  document.getElementById('stat-shown').textContent  = S.filtered.length;
+  document.getElementById('stat-empty').textContent  = empty;
+  document.getElementById('stat-num-cols').textContent = numC;
+}
+
+/* ═══════════════════════════════════
+   FILTER + SORT
+═══════════════════════════════════ */
+function applyFilter() {
+  const q = S.search.toLowerCase().trim();
+  S.filtered = q ? S.rows.filter(r => r.some(c => c.toLowerCase().includes(q))) : [...S.rows];
+  applySort(); S.page = 0; updateStats(); renderTable();
+}
+
+function applySort() {
+  if (S.sortCol < 0) return;
+  const ci = S.sortCol, dir = S.sortDir, num = S._numCols[ci];
+  S.filtered.sort((a, b) => {
+    const av = a[ci] ?? '', bv = b[ci] ?? '';
+    return num ? (numVal(av) - numVal(bv)) * dir : av.localeCompare(bv, 'de') * dir;
+  });
+}
+
+/* ═══════════════════════════════════
+   TABLE
+═══════════════════════════════════ */
+function buildTable() {
+  const thead = document.getElementById('table-head');
+  thead.innerHTML = '';
+  const tr = document.createElement('tr');
+  const th0 = document.createElement('th');
+  th0.textContent = '#'; th0.className = 'row-num-col'; tr.appendChild(th0);
+  S.headers.forEach((h, ci) => {
+    const th = document.createElement('th');
+    th.textContent = h;
+    th.addEventListener('click', () => {
+      document.querySelectorAll('#table-head th').forEach(t => t.classList.remove('sort-asc','sort-desc'));
+      if (S.sortCol === ci) S.sortDir *= -1; else { S.sortCol = ci; S.sortDir = 1; }
+      th.classList.add(S.sortDir === 1 ? 'sort-asc' : 'sort-desc');
+      applySort(); renderTable();
+    });
+    tr.appendChild(th);
+  });
+  thead.appendChild(tr);
+  renderTable();
+}
+
+function renderTable() {
+  const ps = S.pageSize === 0 ? S.filtered.length : S.pageSize;
+  const total = Math.max(1, Math.ceil(S.filtered.length / (ps || 1)));
+  S.page = Math.min(S.page, total - 1);
+  const start = S.page * ps;
+  const slice = S.pageSize === 0 ? S.filtered : S.filtered.slice(start, start + ps);
+  const tbody = document.getElementById('table-body');
+  tbody.innerHTML = '';
+  slice.forEach((row, ri) => {
+    const tr = document.createElement('tr');
+    const td0 = document.createElement('td');
+    td0.className = 'row-num-col'; td0.textContent = start + ri + 1; tr.appendChild(td0);
+    S.headers.forEach((_, ci) => {
+      const td = document.createElement('td');
+      const val = row[ci] ?? '';
+      const span = document.createElement('span');
+      span.className = 'cell-inner'; span.title = val;
+      if (val === '') { span.textContent = '—'; td.className = 'empty-cell'; }
+      else { span.textContent = val; if (S._numCols[ci]) td.className = 'number-cell'; }
+      td.appendChild(span); tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+  document.getElementById('page-info').textContent =
+    S.filtered.length === 0 ? 'Keine Ergebnisse' :
+    S.pageSize === 0 ? `Alle ${S.filtered.length}` :
+    `${start+1}–${Math.min(start+ps, S.filtered.length)} von ${S.filtered.length}`;
+  document.getElementById('btn-prev').disabled = S.page === 0;
+  document.getElementById('btn-next').disabled = S.page >= total - 1;
+}
+
+/* ═══════════════════════════════════
+   STATS PANEL
+═══════════════════════════════════ */
+function buildStatsPanel() {
+  const { headers, rows, _numCols } = S;
+  const total = rows.length * headers.length;
+  let filled = 0; rows.forEach(r => r.forEach(c => { if (c !== '') filled++; }));
+  const numNames = headers.filter((_, i) => _numCols[i]).slice(0, 3).join(', ') || '—';
+
+  document.getElementById('overview-cards').innerHTML = `
+    ${oCard('Zeilen gesamt', rows.length, 'Datensätze')}
+    ${oCard('Spalten', headers.length, `${_numCols.filter(Boolean).length} numerisch`)}
+    ${oCard('Vollständigkeit', Math.round(filled/total*100)+'%', `${total-filled} leere Zellen`)}
+    ${oCard('Num. Spalten', _numCols.filter(Boolean).length, numNames)}
+  `;
+
+  const colEl = document.getElementById('col-cards');
+  colEl.innerHTML = '';
+  headers.forEach((h, ci) => {
+    const vals = rows.map(r => r[ci] ?? '').filter(v => v !== '');
+    const num = _numCols[ci];
+    const div = document.createElement('div');
+    div.className = 'col-card' + (num ? ' is-num' : '');
+    if (num) {
+      const ns = vals.map(v => numVal(v));
+      const sum = ns.reduce((a,b)=>a+b,0), avg=sum/ns.length, min=Math.min(...ns), max=Math.max(...ns);
+      div.innerHTML = `<h4>${h}<span class="tag tag-num">Zahl</span></h4>
+        <div class="col-meta">
+          <div class="col-meta-item">Min: <strong>${fmt(min)}</strong></div>
+          <div class="col-meta-item">Max: <strong>${fmt(max)}</strong></div>
+          <div class="col-meta-item">Ø: <strong>${fmt(avg)}</strong></div>
+          <div class="col-meta-item">Σ: <strong>${fmt(sum)}</strong></div>
+          <div class="col-meta-item">n: <strong>${ns.length}</strong></div>
+        </div>
+        <div class="mini-bar-wrap">
+          <div class="mini-bar-label"><span>${fmt(min)}</span><span>${fmt(max)}</span></div>
+          <div class="mini-bar"><div class="mini-bar-fill" style="width:100%"></div></div>
+        </div>`;
+    } else {
+      const uniq = new Set(vals).size;
+      const freq = {}; vals.forEach(v => freq[v] = (freq[v]||0)+1);
+      const top = Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,3);
+      div.innerHTML = `<h4>${h}<span class="tag tag-txt">Text</span></h4>
+        <div class="col-meta">
+          <div class="col-meta-item">Einträge: <strong>${vals.length}</strong></div>
+          <div class="col-meta-item">Eindeutig: <strong>${uniq}</strong></div>
+        </div>
+        <div class="col-meta" style="margin-top:6px">
+          ${top.map(([v,c])=>`<div class="col-meta-item">"${v}" <strong>${c}×</strong></div>`).join('')}
+        </div>`;
+    }
+    colEl.appendChild(div);
+  });
+}
+function oCard(label, value, sub) {
+  return `<div class="stat-card"><div class="label">${label}</div><div class="value">${value}</div><div class="sub">${sub}</div></div>`;
+}
+
+/* ═══════════════════════════════════
+   CHART (pure canvas, no deps)
+═══════════════════════════════════ */
+const COLORS = ['#2563eb','#0ea5e9','#22c55e','#f59e0b','#ef4444','#8b5cf6','#ec4899','#14b8a6','#f97316','#64748b','#a78bfa','#34d399','#fbbf24','#fb7185','#60a5fa'];
+
+function buildChartControls() {
+  const { headers, _numCols } = S;
+  const numHdrs = headers.filter((_, i) => _numCols[i]);
+  document.getElementById('chart-x').innerHTML = headers.map(h=>`<option>${h}</option>`).join('');
+  document.getElementById('chart-y').innerHTML = (numHdrs.length ? numHdrs : headers).map(h=>`<option>${h}</option>`).join('');
+}
+
+function drawChart() {
+  const type  = document.getElementById('chart-type').value;
+  const xH    = document.getElementById('chart-x').value;
+  const yH    = document.getElementById('chart-y').value;
+  const limit = parseInt(document.getElementById('chart-limit').value) || 15;
+  const xi = S.headers.indexOf(xH), yi = S.headers.indexOf(yH);
+  if (xi < 0 || yi < 0) return showToast('Spalte nicht gefunden');
+
+  const agg = {};
+  S.filtered.forEach(r => { const x=r[xi]??'?', y=numVal(r[yi]??'0')||0; agg[x]=(agg[x]||0)+y; });
+  let entries = Object.entries(agg).sort((a,b)=>b[1]-a[1]).slice(0,limit);
+  if (type === 'line') entries = entries.reverse();
+  const labels = entries.map(e=>e[0]), values = entries.map(e=>e[1]);
+
+  document.getElementById('chart-title').textContent = `${yH} nach ${xH}`;
+  const canvas = document.getElementById('chart-canvas');
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.parentElement.clientWidth - 48;
+  const H = type === 'pie' ? Math.min(W * 0.7, 380) : 300;
+  canvas.width = W * dpr; canvas.height = H * dpr;
+  canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, W, H);
+  type === 'pie' ? drawPie(ctx,W,H,labels,values) : drawBarLine(ctx,W,H,labels,values,type);
+}
+
+function drawBarLine(ctx, W, H, labels, values, type) {
+  const p = {top:20, right:20, bottom:56, left:70};
+  const gW = W-p.left-p.right, gH = H-p.top-p.bottom;
+  const max = Math.max(...values, 1);
+
+  // grid
+  for (let i=0; i<=4; i++) {
+    const y = p.top + gH - gH*i/4;
+    ctx.strokeStyle='#f1f5f9'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(p.left,y); ctx.lineTo(p.left+gW,y); ctx.stroke();
+    ctx.fillStyle='#94a3b8'; ctx.font='11px Segoe UI,system-ui'; ctx.textAlign='right';
+    ctx.fillText(fmt(max*i/4), p.left-6, y+4);
+  }
+  // axes
+  ctx.strokeStyle='#e2e8f0'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(p.left,p.top); ctx.lineTo(p.left,p.top+gH); ctx.lineTo(p.left+gW,p.top+gH); ctx.stroke();
+
+  const bW = gW / labels.length;
+  if (type === 'bar') {
+    labels.forEach((_, i) => {
+      const bH = (values[i]/max)*gH;
+      ctx.fillStyle = COLORS[i % COLORS.length];
+      ctx.beginPath();
+      ctx.roundRect(p.left+i*bW+bW*0.1, p.top+gH-bH, bW*0.8, bH, [4,4,0,0]);
+      ctx.fill();
+    });
+  } else {
+    ctx.beginPath(); ctx.strokeStyle=COLORS[0]; ctx.lineWidth=2.5; ctx.lineJoin='round';
+    labels.forEach((_,i) => {
+      const x=p.left+i*bW+bW/2, y=p.top+gH-(values[i]/max)*gH;
+      i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+    }); ctx.stroke();
+    labels.forEach((_,i) => {
+      const x=p.left+i*bW+bW/2, y=p.top+gH-(values[i]/max)*gH;
+      ctx.beginPath(); ctx.arc(x,y,4,0,Math.PI*2);
+      ctx.fillStyle=COLORS[0]; ctx.fill();
+      ctx.strokeStyle='#fff'; ctx.lineWidth=1.5; ctx.stroke();
+    });
+  }
+  ctx.fillStyle='#475569'; ctx.font='11px Segoe UI,system-ui'; ctx.textAlign='center';
+  labels.forEach((l,i) => ctx.fillText(l.length>10?l.slice(0,9)+'…':l, p.left+i*bW+bW/2, p.top+gH+18));
+}
+
+function drawPie(ctx, W, H, labels, values) {
+  const total = values.reduce((a,b)=>a+b,0);
+  const cx=W/2, cy=(H-40)/2+10, r=Math.min(cx,cy)-40;
+  let angle = -Math.PI/2;
+  values.forEach((v,i) => {
+    const slice = (v/total)*Math.PI*2;
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,r,angle,angle+slice); ctx.closePath();
+    ctx.fillStyle=COLORS[i%COLORS.length]; ctx.fill();
+    ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.stroke();
+    const pct=Math.round(v/total*100), mid=angle+slice/2;
+    if (pct>=5) {
+      ctx.fillStyle='#fff'; ctx.font='bold 11px Segoe UI,system-ui';
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(pct+'%', cx+(r*0.65)*Math.cos(mid), cy+(r*0.65)*Math.sin(mid));
+    }
+    angle += slice;
+  });
+  // legend
+  const cols=4, iW=(W-40)/cols;
+  labels.slice(0,8).forEach((l,i) => {
+    const lx=20+(i%cols)*iW, ly=cy+r+14+Math.floor(i/cols)*16;
+    ctx.fillStyle=COLORS[i%COLORS.length]; ctx.fillRect(lx,ly,10,10);
+    ctx.fillStyle='#475569'; ctx.font='11px Segoe UI,system-ui'; ctx.textAlign='left'; ctx.textBaseline='middle';
+    ctx.fillText(l.length>10?l.slice(0,9)+'…':l, lx+14, ly+5);
+  });
+}
+
+/* ═══════════════════════════════════
+   EXPORT
+═══════════════════════════════════ */
+function dl(content, name, mime) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([content],{type:mime}));
+  a.download = name; a.click();
+}
+function toCSV() {
+  return [S.headers, ...S.filtered].map(r => r.map(c=>`"${(c??'').replace(/"/g,'""')}"`).join(',')).join('\n');
+}
+
+/* ═══════════════════════════════════
+   TOAST
+═══════════════════════════════════ */
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+/* ═══════════════════════════════════
+   EVENTS
+═══════════════════════════════════ */
+document.getElementById('file-input').addEventListener('change', e => {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = ev => loadData(ev.target.result, f.name);
+  r.readAsText(f, 'UTF-8'); e.target.value = '';
+});
+
+['dragover','dragenter'].forEach(ev => document.addEventListener(ev, e => { e.preventDefault(); document.getElementById('drop-zone').classList.add('dragover'); }));
+['dragleave','dragend'].forEach(ev => document.addEventListener(ev, () => document.getElementById('drop-zone').classList.remove('dragover')));
+document.addEventListener('drop', e => {
+  e.preventDefault(); document.getElementById('drop-zone').classList.remove('dragover');
+  const f = e.dataTransfer.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = ev => loadData(ev.target.result, f.name);
+  r.readAsText(f, 'UTF-8');
+});
+
+document.getElementById('btn-demo').addEventListener('click', () => loadData(DEMO, 'demo-mitarbeiter.csv'));
+document.getElementById('btn-new-file').addEventListener('click', () => {
+  document.getElementById('upload-zone').style.display = '';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('btn-new-file').style.display = 'none';
+});
+document.getElementById('search-input').addEventListener('input', e => { S.search = e.target.value; applyFilter(); });
+document.getElementById('btn-clear-filter').addEventListener('click', () => { S.search=''; document.getElementById('search-input').value=''; applyFilter(); });
+document.getElementById('rows-per-page').addEventListener('change', e => { S.pageSize=parseInt(e.target.value); S.page=0; renderTable(); });
+document.getElementById('btn-prev').addEventListener('click', () => { S.page--; renderTable(); });
+document.getElementById('btn-next').addEventListener('click', () => { S.page++; renderTable(); });
+
+document.querySelectorAll('.tab-btn').forEach(btn => btn.addEventListener('click', () => {
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
+}));
+
+document.getElementById('btn-draw').addEventListener('click', drawChart);
+
+document.getElementById('btn-export-csv').addEventListener('click', () => { dl(toCSV(), S.filename||'export.csv', 'text/csv;charset=utf-8'); showToast('✓ CSV heruntergeladen'); });
+document.getElementById('btn-copy-tsv').addEventListener('click', async () => {
+  await navigator.clipboard.writeText([S.headers,...S.filtered].map(r=>r.join('\t')).join('\n'));
+  showToast('✓ In Zwischenablage kopiert');
+});
+document.getElementById('btn-export-json').addEventListener('click', () => {
+  const json = JSON.stringify(S.filtered.map(r=>Object.fromEntries(S.headers.map((h,i)=>[h,r[i]??'']))),null,2);
+  dl(json, (S.filename||'export').replace('.csv','')+'.json', 'application/json');
+  showToast('✓ JSON heruntergeladen');
+});
+</script>
 </body>
 </html>
